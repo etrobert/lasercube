@@ -26,6 +26,8 @@ import struct
 import threading
 import time
 
+import numpy as np
+
 # Based on information from:
 # https://github.com/Wickedlasers/libLaserdockCore/blob/master/3rdparty/laserdocklib/src/LaserDockNetworkDevice.cpp
 
@@ -211,6 +213,21 @@ def gen_frame():
             int(math.pow((math.sin((p + (time.time() * 2)) * (math.pi*4)) / 2. + 0.5), 1) * 0x0ff),
             int(math.pow((math.sin((p + (time.time() * 3)) * (math.pi*4)) / 2. + 0.5), 1) * 0x080)))
     return frame
+
+
+def create_point(x: float, y: float, red: int, green: int, blue: int):
+    """Create a point in the right format so that it can be added to the frame
+
+    :param x: x-coordinate of the point, must be in [-1, 1]
+    :param y: y-coordinate of the point, must be in [-1, 1]
+    :param red: in [0, 255]
+    :param green: in [0, 255]
+    :param blue: in [0, 255]
+    """
+    XY_MAX = 4095
+    assert -1 <= x <= 1 and -1 <= y <= 1
+    assert 0 <= red <= 255 and 0 <= green <= 255 and 0 <= blue <= 255
+    return struct.pack('<HHHHH', int((x + 1) / 2 * XY_MAX), int((y + 1) / 2 * XY_MAX), red, green, blue)
 
 # Loop over incoming messages on cmd_sock and data_sock, and route them to the
 # right LaserCube objects (or allocate new ones as needed).
